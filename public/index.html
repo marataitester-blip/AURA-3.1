@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AURA-3.1 SCANNЕR PRO</title>
+    <title>AURA-3.1 LOCAL</title>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #d4af37; --neon: #00ffea; --bg: #000; }
         body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Roboto', sans-serif; color: var(--gold); }
-        
         #container { position: relative; width: 100vw; height: 100vh; }
         video { width: 100%; height: 100%; object-fit: cover; display: none; }
         canvas { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
@@ -25,19 +24,17 @@
         .pulse { color: var(--neon) !important; text-shadow: 0 0 25px var(--neon) !important; transform: scale(1.1); }
 
         .bottom-bar { padding: 40px; pointer-events: auto; text-align: center; background: linear-gradient(to top, #000, transparent); }
-        .eye-btn { background: var(--gold); border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 35px; box-shadow: 0 0 30px var(--gold); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .eye-btn:active { transform: scale(0.9); }
+        .eye-btn { background: var(--gold); border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 35px; box-shadow: 0 0 30px var(--gold); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 
         /* ВИРТУАЛЬНЫЙ СТОЛ */
         #table-view { position: absolute; inset: 0; background: radial-gradient(#1a1a1a, #000); z-index: 100; display: none; flex-direction: column; }
         .scroll-grid { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; align-items: center; }
         .spread { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 15px; width: 100%; max-width: 900px; }
-        .card-node { display: flex; flex-direction: column; align-items: center; animation: reveal 0.6s ease; }
+        .card-node { display: flex; flex-direction: column; align-items: center; animation: reveal 0.5s ease; }
         .card-view { width: 100%; border-radius: 8px; border: 1px solid var(--gold); box-shadow: 0 8px 20px rgba(0,0,0,0.8); }
-        .card-name { font-size: 10px; margin-top: 10px; color: #fff; text-align: center; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; }
+        .card-name { font-size: 10px; margin-top: 10px; color: #fff; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
 
         @keyframes reveal { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        
         #start-screen { position: absolute; inset:0; background:#000; z-index:999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 1s; }
         .logo { font-family: 'Cinzel', serif; font-size: 42px; color: var(--gold); letter-spacing: 8px; text-align: center; }
     </style>
@@ -46,18 +43,16 @@
 
 <div id="container">
     <div id="start-screen">
-        <div class="logo">AURA-3.1<br><span style="font-size: 12px; color: #555;">CUSTOM DECK ENGINE</span></div>
-        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold; letter-spacing: 2px;">ВОЙТИ В ПОТОК</button>
-        <div id="load-msg" style="display:none; color: var(--neon); margin-top: 30px; font-family: monospace; font-size: 10px;">СИНХРОНИЗАЦИЯ С МОДЕЛЬЮ...</div>
+        <div class="logo">AURA-3.1<br><span style="font-size: 12px; color: #555;">LOCAL ASSETS EDITION</span></div>
+        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold;">ВОЙТИ В ПОТОК</button>
     </div>
 
     <video id="v" playsinline muted autoplay></video>
     <canvas id="c"></canvas>
     
     <div class="ui">
-        <div class="top-bar"><input type="text" placeholder="Запрос к Пространству..."></div>
+        <div class="top-bar"><input type="text" placeholder="Вопрос Вселенной..."></div>
         <div id="aura-counter">
-            <div style="font-size: 9px; letter-spacing: 4px; margin-bottom: 5px; opacity: 0.6;">АРКАНОВ ЗАХВАЧЕНО</div>
             <div id="count-num">0 / 11</div>
         </div>
         <div class="bottom-bar"><button class="eye-btn" onclick="openTable()">👁️</button></div>
@@ -65,22 +60,22 @@
 
     <div id="table-view">
         <div class="scroll-grid">
-            <h2 style="font-family: 'Cinzel'; margin-bottom: 35px; letter-spacing: 6px;">ВИРТУАЛЬНЫЙ РАСКЛАД</h2>
+            <h2 style="font-family: 'Cinzel'; margin-bottom: 35px; letter-spacing: 6px;">РАСКЛАД</h2>
             <div id="grid" class="spread"></div>
         </div>
-        <button onclick="clearScan()" style="padding: 25px; background: #000; color: var(--gold); border: none; border-top: 1px solid var(--gold); cursor: pointer; font-family: 'Cinzel'; font-weight: bold; letter-spacing: 2px;">НОВЫЙ ЦИКЛ</button>
+        <button onclick="clearScan()" style="padding: 25px; background: #000; color: var(--gold); border: none; border-top: 1px solid var(--gold); cursor: pointer; font-family: 'Cinzel'; font-weight: bold;">НОВЫЙ ЦИКЛ</button>
     </div>
 </div>
 
 <script>
+    // Массивы имен соответствуют порядку в твоем "прямые ссылки.txt"
     const RU = ["Шут", "Маг", "Жрица", "Императрица", "Император", "Иерофант", "Влюбленные", "Колесница", "Справедливость", "Отшельник", "Колесо Фортуны", "Сила", "Повешенный", "Смерть", "Умеренность", "Дьявол", "Башня", "Звезда", "Луна", "Солнце", "Суд", "Мир", "Герой", "Белая Карта", "Туз Жезлов", "2 Жезлов", "3 Жезлов", "4 Жезлов", "5 Жезлов", "6 Жезлов", "7 Жезлов", "8 Жезлов", "9 Жезлов", "10 Жезлов", "Паж Жезлов", "Рыцарь Жезлов", "Королева Жезлов", "Король Жезлов", "Туз Кубков", "2 Кубков", "3 Кубков", "4 Кубков", "5 Кубков", "6 Кубков", "7 Кубков", "8 Кубков", "9 Кубков", "10 Кубков", "Паж Кубков", "Рыцарь Кубков", "Королева Кубков", "Король Кубков", "Туз Мечей", "2 Мечей", "3 Мечей", "4 Мечей", "5 Мечей", "6 Мечей", "7 Мечей", "8 Мечей", "9 Мечей", "10 Мечей", "Паж Мечей", "Рыцарь Мечей", "Королева Мечей", "Король Мечей", "Туз Пентаклей", "2 Пентаклей", "3 Пентаклей", "4 Пентаклей", "5 Пентаклей", "6 Пентаклей", "7 Пентаклей", "8 Пентаклей", "9 Пентаклей", "10 Пентаклей", "Паж Пентаклей", "Рыцарь Пентаклей", "Королева Пентаклей", "Король Пентаклей", "Рубашка"];
-    const EN = ["00_fool","01_magician","02_high_priestess","03_empress","04_emperor","05_hierophant","06_lovers","07_chariot","08_justice","09_hermit","10_wheel_of_fortune","11_strength","12_hanged_man","13_death","14_temperance","15_devil","16_tower","17_star","18_moon","19_sun","20_judgement","21_world","22_hero","23_white_card","wands_01_ace","wands_02_two","wands_03_three","wands_04_four","wands_05_five","wands_06_six","wands_07_seven","wands_08_eight","wands_09_nine","wands_10_ten","wands_11_page","wands_12_knight","wands_13_queen","wands_14_king","cups_01_ace","cups_02_two","cups_03_three","cups_04_four","cups_05_five","cups_06_six","cups_07_seven","cups_08_eight","cups_09_nine","cups_10_ten","cups_11_page","cups_12_knight","cups_13_queen","cups_14_king","swords_01_ace","swords_02_two","swords_03_three","swords_04_four","swords_05_five","swords_06_six","swords_07_seven","swords_08_eight","swords_09_nine","swords_10_ten","swords_11_page","swords_12_knight","swords_13_queen","swords_14_king","pentacles_01_ace","pentacles_02_two","pentacles_03_three","pentacles_04_four","pentacles_05_five","pentacles_06_six","pentacles_07_seven","pentacles_08_eight","pentacles_09_nine","pentacles_10_ten","pentacles_11_page","pentacles_12_knight","pentacles_13_queen","pentacles_14_king","rubashka"];
+    const FILE = ["00_fool","01_magician","02_high_priestess","03_empress","04_emperor","05_hierophant","06_lovers","07_chariot","08_justice","09_hermit","10_wheel_of_fortune","11_strength","12_hanged_man","13_death","14_temperance","15_devil","16_tower","17_star","18_moon","19_sun","20_judgement","21_world","22_hero","23_white_card","wands_01_ace","wands_02_two","wands_03_three","wands_04_four","wands_05_five","wands_06_six","wands_07_seven","wands_08_eight","wands_09_nine","wands_10_ten","wands_11_page","wands_12_knight","wands_13_queen","wands_14_king","cups_01_ace","cups_02_two","cups_03_three","cups_04_four","cups_05_five","cups_06_six","cups_07_seven","cups_08_eight","cups_09_nine","cups_10_ten","cups_11_page","cups_12_knight","cups_13_queen","cups_14_king","swords_01_ace","swords_02_two","swords_03_three","swords_04_four","swords_05_five","swords_06_six","swords_07_seven","swords_08_eight","swords_09_nine","swords_10_ten","swords_11_page","swords_12_knight","swords_13_queen","swords_14_king","pentacles_01_ace","pentacles_02_two","pentacles_03_three","pentacles_04_four","pentacles_05_five","pentacles_06_six","pentacles_07_seven","pentacles_08_eight","pentacles_09_nine","pentacles_10_ten","pentacles_11_page","pentacles_12_knight","pentacles_13_queen","pentacles_14_king","rubashka"];
 
     let session, video, canvas, ctx;
     let locked = new Map(), buffer = new Map();
 
     async function activate() {
-        document.getElementById('load-msg').style.display = 'block';
         try {
             ort.env.wasm.numThreads = 1;
             session = await ort.InferenceSession.create('./best.onnx', { executionProviders: ['wasm'] });
@@ -96,10 +91,11 @@
                 video.style.display = 'block';
                 loop();
             };
-        } catch (e) { alert("AURA CORE ERROR: " + e); }
+        } catch (e) { alert("ERROR: " + e); }
     }
 
-    function calculateIOU(b1, b2) {
+    // Алгоритм NMS для исключения галлюцинаций
+    function getIOU(b1, b2) {
         const x1 = Math.max(b1.x - b1.w/2, b2.x - b2.w/2);
         const y1 = Math.max(b1.y - b1.h/2, b2.y - b2.h/2);
         const x2 = Math.min(b1.x + b1.w/2, b2.x + b2.w/2);
@@ -134,16 +130,16 @@
             if (conf > 0.45) cands.push({ conf, cls, x: data[0*anchors+i]*sx, y: data[1*anchors+i]*sy, w: data[2*anchors+i]*sx, h: data[3*anchors+i]*sy });
         }
         cands.sort((a,b) => b.conf - a.conf);
-        let filtered = [];
-        cands.forEach(c => { if (!filtered.some(f => calculateIOU(c, f) > 0.45)) filtered.push(c); });
+        let final = [];
+        cands.forEach(c => { if (!final.some(f => getIOU(c, f) > 0.45)) final.push(c); });
 
-        filtered.forEach(item => {
+        final.forEach(item => {
             if (locked.has(item.cls)) { render(item, "#d4af37", true); return; }
             if (item.conf > 0.65) {
                 let b = buffer.get(item.cls) || { count: 0 };
                 b.count++; buffer.set(item.cls, b);
                 if (b.count > 12) {
-                    locked.set(item.cls, { ...item, name: RU[item.cls], file: EN[item.cls] });
+                    locked.set(item.cls, { ...item, name: RU[item.cls], file: FILE[item.cls] });
                     updateCounter();
                     if (navigator.vibrate) navigator.vibrate(40);
                 }
@@ -171,11 +167,13 @@
         if (locked.size === 0) return;
         const grid = document.getElementById('grid');
         grid.innerHTML = "";
+        // Сортировка по физической геометрии стола
         const sorted = Array.from(locked.values()).sort((a,b) => (a.y*canvas.width + a.x) - (b.y*canvas.width + b.x));
         sorted.forEach(c => {
             const div = document.createElement('div');
             div.className = 'card-node';
-            div.innerHTML = `<img src="https://cdn.jsdelivr.net/gh/marataitester-blip/tarot/${c.file}.png" class="card-view"><div class="card-name">${c.name}</div>`;
+            // ЗАГРУЗКА ИЗ ПАПКИ cards
+            div.innerHTML = `<img src="./cards/${c.file}.jpg" class="card-view"><div class="card-name">${c.name}</div>`;
             grid.appendChild(div);
         });
         document.getElementById('table-view').style.display = 'flex';
