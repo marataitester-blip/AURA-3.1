@@ -1,1 +1,17 @@
-
+{
+  "headers": [
+    {
+      "source": "/best.onnx",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/octet-stream"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    }
+  ]
+}
