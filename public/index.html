@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AURA-3.1 PRO</title>
+    <title>AURA-3.1 STABLE</title>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
@@ -40,15 +40,15 @@
 
 <div id="container">
     <div id="start-screen">
-        <div class="logo">AURA-3.1<br><span style="font-size: 12px; color: #555;">FAST SCAN ENGINE</span></div>
-        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold;">ОТКРЫТЬ ПОТОК</button>
+        <div class="logo">AURA-3.1<br><span style="font-size: 12px; color: #555;">STABLE CORE</span></div>
+        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold;">ЗАПУСТИТЬ</button>
     </div>
 
     <video id="v" playsinline muted autoplay></video>
     <canvas id="c"></canvas>
     
     <div class="ui">
-        <div class="top-bar"><input type="text" placeholder="Вопрос к колоде..."></div>
+        <div class="top-bar"><input type="text" placeholder="Вопрос..."></div>
         <div id="aura-counter">
             <div id="count-num">0 / 11</div>
         </div>
@@ -73,8 +73,8 @@
 
     async function activate() {
         try {
-            // Увеличиваем число потоков до 4 для скорости
-            ort.env.wasm.numThreads = 4;
+            // ОДНОПОТОЧНЫЙ РЕЖИМ (ФИКС ОШИБКИ)
+            ort.env.wasm.numThreads = 1; 
             session = await ort.InferenceSession.create('./best.onnx', { executionProviders: ['wasm'] });
             video = document.getElementById('v');
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
@@ -123,7 +123,7 @@
         for (let i=0; i<anchors; i++) {
             let conf = 0, cls = -1;
             for (let c=4; c<85; c++) { if (data[c*anchors+i] > conf) { conf = data[c*anchors+i]; cls = c-4; } }
-            // ПОРОГ ПОИСКА (был 0.45) -> 0.35 для "свободы"
+            // ПРИОРИТЕТ "СВОБОДЫ"
             if (conf > 0.35) cands.push({ conf, cls, x: data[0*anchors+i]*sx, y: data[1*anchors+i]*sy, w: data[2*anchors+i]*sx, h: data[3*anchors+i]*sy });
         }
         cands.sort((a,b) => b.conf - a.conf);
@@ -132,13 +132,10 @@
 
         final.forEach(item => {
             if (locked.has(item.cls)) { render(item, "#d4af37", true); return; }
-            
-            // ПОРОГ ФИКСАЦИИ (был 0.65) -> 0.50 для быстрого схватывания
             if (item.conf > 0.50) {
                 let b = buffer.get(item.cls) || { count: 0 };
                 b.count++; buffer.set(item.cls, b);
-                
-                // ВРЕМЯ ЗАХВАТА (было 12 кадров) -> 5 кадров (в 2 раза быстрее)
+                // ФИКСАЦИЯ ЗА 5 КАДРОВ (УСКОРЕНИЕ)
                 if (b.count > 5) {
                     locked.set(item.cls, { ...item, name: RU[item.cls], file: FILE[item.cls] });
                     updateCounter();
