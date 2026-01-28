@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AURA-3.1 PRO</title>
+    <title>AURA 3.1</title>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
@@ -21,40 +21,50 @@
             padding: 20px; pointer-events: auto; text-align: center; 
         }
         #count-num { 
-            font-family: 'Cinzel', serif; font-size: 58px; font-weight: bold; 
-            color: var(--gold); text-shadow: 0 0 20px var(--gold); transition: 0.3s; 
+            font-family: 'Cinzel', serif; font-size: 64px; font-weight: bold; 
+            color: var(--gold); text-shadow: 0 0 25px var(--gold); transition: 0.3s; 
         }
-        .counter-label { font-size: 9px; letter-spacing: 5px; opacity: 0.6; margin-top: -8px; text-transform: uppercase; }
+        .counter-label { font-size: 9px; letter-spacing: 5px; opacity: 0.6; margin-top: -10px; text-transform: uppercase; }
 
         /* НИЖНЯЯ ПАНЕЛЬ */
         .bottom-panel { 
-            padding: 45px; pointer-events: auto; text-align: center; 
+            padding: 40px; pointer-events: auto; text-align: center; 
             background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); 
         }
         
         .action-btn { 
             background: transparent; border: 2px solid var(--gold); color: var(--gold); 
-            padding: 18px 45px; border-radius: 40px; font-family: 'Cinzel'; 
+            padding: 16px 40px; border-radius: 40px; font-family: 'Cinzel'; 
             font-weight: bold; cursor: pointer; letter-spacing: 3px; transition: 0.3s;
         }
-        .action-btn.active { background: var(--gold); color: #000; box-shadow: 0 0 30px var(--gold); }
+        .action-btn.active { background: #8b0000; border-color: #ff4500; color: #fff; box-shadow: 0 0 20px #ff4500; }
 
         .eye-btn { 
-            background: var(--gold); border: none; width: 75px; height: 75px; 
-            border-radius: 50%; font-size: 32px; box-shadow: 0 0 25px var(--gold); 
+            background: var(--gold); border: none; width: 80px; height: 80px; 
+            border-radius: 50%; font-size: 35px; box-shadow: 0 0 30px var(--gold); 
             cursor: pointer; margin-top: 25px; transition: 0.2s; 
         }
-        .eye-btn:disabled { opacity: 0.1; filter: grayscale(1); }
+        .eye-btn:disabled { opacity: 0.05; filter: grayscale(1); }
 
-        /* ВИРТУАЛЬНЫЙ СТОЛ */
+        /* ВИРТУАЛЬНЫЙ СТОЛ (АБСОЛЮТНОЕ ПОЗИЦИОНИРОВАНИЕ) */
         #table-view { position: absolute; inset: 0; background: radial-gradient(#1a1a1a, #000); z-index: 100; display: none; flex-direction: column; }
-        .scroll-grid { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; align-items: center; }
-        .spread { display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 15px; width: 100%; max-width: 1000px; }
-        .card-node { display: flex; flex-direction: column; align-items: center; animation: reveal 0.4s ease; }
-        .card-view { width: 100%; border-radius: 8px; border: 1px solid var(--gold); box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
-        .card-name { font-size: 10px; margin-top: 10px; color: #fff; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Холст для расклада */
+        .spread-canvas { 
+            flex: 1; position: relative; width: 100%; overflow: hidden; 
+            background: url('https://www.transparenttextures.com/patterns/dark-leather.png');
+        }
 
-        @keyframes reveal { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .card-absolute { 
+            position: absolute; transform: translate(-50%, -50%); 
+            width: 85px; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: cardFade 0.6s ease;
+        }
+        .card-img { width: 100%; border-radius: 5px; border: 1px solid var(--gold); box-shadow: 0 5px 15px #000; }
+        .card-caption { font-size: 8px; color: #fff; text-align: center; margin-top: 5px; text-transform: uppercase; white-space: nowrap; }
+
+        @keyframes cardFade { from { opacity: 0; transform: translate(-50%, -40%) scale(0.8); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+        
         #start-screen { position: absolute; inset:0; background:#000; z-index:999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 1s; }
         .logo { font-family: 'Cinzel', serif; font-size: 44px; color: var(--gold); letter-spacing: 10px; text-align: center; }
     </style>
@@ -63,8 +73,8 @@
 
 <div id="container">
     <div id="start-screen">
-        <div class="logo">AURA 3.1<br><span style="font-size: 11px; color: #444; letter-spacing: 3px;">PSYCHOLOGY & TAROT ENGINE</span></div>
-        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold; letter-spacing: 2px;">СИНХРОНИЗАЦИЯ</button>
+        <div class="logo">AURA 3.1<br><span style="font-size: 11px; color: #444; letter-spacing: 3px;">BY MARAT</span></div>
+        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold;">СИНХРОНИЗАЦИЯ</button>
     </div>
 
     <video id="v" playsinline muted autoplay></video>
@@ -74,7 +84,7 @@
         <div class="top-panel">
             <div id="aura-counter">
                 <div id="count-num">0</div>
-                <div class="counter-label">Арканов зафиксировано</div>
+                <div class="counter-label">АРКАНОВ</div>
             </div>
         </div>
         
@@ -86,10 +96,8 @@
     </div>
 
     <div id="table-view">
-        <div class="scroll-grid">
-            <h2 style="font-family: 'Cinzel'; margin-bottom: 35px; letter-spacing: 8px;">ПОТОК РАСКЛАДА</h2>
-            <div id="grid" class="spread"></div>
-        </div>
+        <div class="spread-canvas" id="spread-canvas">
+            </div>
         <button onclick="clearScan()" style="padding: 25px; background: #000; color: var(--gold); border: none; border-top: 1px solid var(--gold); cursor: pointer; font-family: 'Cinzel'; font-weight: bold; letter-spacing: 3px;">НОВЫЙ ЦИКЛ</button>
     </div>
 </div>
@@ -163,8 +171,8 @@
         }
         cands.sort((a,b) => b.conf - a.conf);
         let final = [];
-        // ЛОЯЛЬНЫЙ IOU (0.65) — чтобы центральные карты Креста не мешали друг другу
-        cands.forEach(c => { if (!final.some(f => getIOU(c, f) > 0.65)) final.push(c); });
+        // ЛОЯЛЬНЫЙ IOU (0.75) — карты могут лежать очень плотно, почти внахлест
+        cands.forEach(c => { if (!final.some(f => getIOU(c, f) > 0.75)) final.push(c); });
 
         final.forEach(item => {
             if (locked.has(item.cls)) { render(item, "#d4af37", true); return; }
@@ -174,13 +182,20 @@
                 let b = buffer.get(item.cls) || { count: 0 };
                 b.count++; buffer.set(item.cls, b);
                 if (b.count > 3) {
-                    locked.set(item.cls, { ...item, name: RU[item.cls], file: FILE[item.cls] });
+                    // Сохраняем физические координаты (в процентах от экрана)
+                    locked.set(item.cls, { 
+                        ...item, 
+                        name: RU[item.cls], 
+                        file: FILE[item.cls],
+                        px: (item.x / canvas.width) * 100,
+                        py: (item.y / canvas.height) * 100
+                    });
                     updateCounter();
                     if (navigator.vibrate) navigator.vibrate(40);
                 }
                 render(item, "#00ffea", false);
             } else if (!isScanning) {
-                render(item, "rgba(255,255,255,0.2)", false);
+                render(item, "rgba(255,255,255,0.15)", false);
             }
         });
         document.getElementById('view-btn').disabled = (locked.size === 0);
@@ -197,8 +212,8 @@
         ctx.strokeStyle = col; ctx.lineWidth = isL ? 2 : 1;
         ctx.strokeRect(item.x-item.w/2, item.y-item.h/2, item.w, item.h);
         if (isL) {
-            ctx.fillStyle = col; ctx.font = "bold 12px Cinzel";
-            ctx.fillText(item.name, item.x-item.w/2, item.y-item.h/2-10);
+            ctx.fillStyle = col; ctx.font = "bold 10px Cinzel";
+            ctx.fillText(item.name, item.x-item.w/2, item.y-item.h/2-5);
         }
     }
 
@@ -206,26 +221,17 @@
         isScanning = false;
         document.getElementById('scan-trigger').innerText = "НАЧАТЬ СКАН";
         document.getElementById('scan-trigger').classList.remove('active');
-        const grid = document.getElementById('grid');
-        grid.innerHTML = "";
+        const board = document.getElementById('spread-canvas');
+        board.innerHTML = "";
         
-        const cards = Array.from(locked.values());
-        
-        // ГЕОМЕТРИЯ 2.0: Сверхчувствительная группировка по рядам для Креста
-        // Группируем карты, если разница по высоте меньше 12% от высоты экрана
-        cards.sort((a, b) => {
-            const rowThreshold = canvas.height * 0.12;
-            if (Math.abs(a.y - b.y) < rowThreshold) {
-                return a.x - b.x;
-            }
-            return a.y - b.y;
-        });
-
-        cards.forEach(c => {
+        locked.forEach(c => {
             const div = document.createElement('div');
-            div.className = 'card-node';
-            div.innerHTML = `<img src="./cards/${c.file}.jpg" class="card-view"><div class="card-name">${c.name}</div>`;
-            grid.appendChild(div);
+            div.className = 'card-absolute';
+            // Устанавливаем карту по её РЕАЛЬНЫМ координатам захвата
+            div.style.left = c.px + "%";
+            div.style.top = c.py + "%";
+            div.innerHTML = `<img src="./cards/${c.file}.jpg" class="card-img"><div class="card-caption">${c.name}</div>`;
+            board.appendChild(div);
         });
         document.getElementById('table-view').style.display = 'flex';
     }
