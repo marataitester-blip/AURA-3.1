@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AURA-3.1 ULTRA-SOFT</title>
+    <title>AURA-3.2 PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
@@ -13,23 +13,56 @@
         video { width: 100%; height: 100%; object-fit: cover; display: none; }
         canvas { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 
+        /* ИНТЕРФЕЙС УПРАВЛЕНИЯ */
         .ui { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; z-index: 10; }
-        .top-bar { background: rgba(0,0,0,0.85); padding: 20px; pointer-events: auto; border-bottom: 1px solid var(--gold); }
-        input { background: rgba(255,255,255,0.05); border: 1px solid var(--gold); color: #fff; padding: 12px; border-radius: 5px; width: 90%; display: block; margin: 0 auto; outline: none; font-size: 16px; }
+        
+        /* ВЕРХНИЙ СЧЕТЧИК (ЗАМЕТНЫЙ) */
+        .top-panel { 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); 
+            padding: 25px; pointer-events: auto; text-align: center; 
+        }
+        #aura-counter { display: inline-block; }
+        #count-num { 
+            font-family: 'Cinzel', serif; font-size: 52px; font-weight: bold; 
+            color: var(--gold); text-shadow: 0 0 20px var(--gold); transition: 0.3s; 
+        }
+        .counter-label { font-size: 10px; letter-spacing: 4px; opacity: 0.7; margin-top: -5px; }
 
-        #aura-counter { position: absolute; bottom: 135px; left: 50%; transform: translateX(-50%); text-align: center; }
-        #count-num { font-family: 'Cinzel', serif; font-size: 38px; color: var(--gold); text-shadow: 0 0 15px var(--gold); transition: 0.3s; }
-        .pulse { color: var(--neon) !important; text-shadow: 0 0 25px var(--neon) !important; transform: scale(1.1); }
+        /* НИЖНЯЯ ПАНЕЛЬ */
+        .bottom-panel { 
+            padding: 40px; pointer-events: auto; text-align: center; 
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); 
+        }
+        
+        /* КНОПКА ЗАПУСКА СКАНА */
+        .action-btn { 
+            background: transparent; border: 2px solid var(--gold); color: var(--gold); 
+            padding: 15px 40px; border-radius: 30px; font-family: 'Cinzel'; 
+            font-weight: bold; cursor: pointer; letter-spacing: 2px; transition: 0.3s;
+            pointer-events: auto;
+        }
+        .action-btn.active { background: var(--gold); color: #000; box-shadow: 0 0 25px var(--gold); }
+        .action-btn:disabled { opacity: 0.3; border-color: #555; color: #555; }
 
-        .bottom-bar { padding: 40px; pointer-events: auto; text-align: center; background: linear-gradient(to top, #000, transparent); }
-        .eye-btn { background: var(--gold); border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 35px; box-shadow: 0 0 30px var(--gold); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+        .eye-btn { 
+            background: var(--gold); border: none; width: 70px; height: 70px; 
+            border-radius: 50%; font-size: 30px; box-shadow: 0 0 20px var(--gold); 
+            cursor: pointer; margin-top: 20px; transition: 0.2s; 
+        }
 
+        /* ВИРТУАЛЬНЫЙ СТОЛ */
         #table-view { position: absolute; inset: 0; background: radial-gradient(#1a1a1a, #000); z-index: 100; display: none; flex-direction: column; }
         .scroll-grid { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; align-items: center; }
-        .spread { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 15px; width: 100%; max-width: 900px; }
+        
+        /* СЕТКА (РАСШИРЕНА) */
+        .spread { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); 
+            gap: 12px; width: 100%; max-width: 1000px; 
+        }
         .card-node { display: flex; flex-direction: column; align-items: center; animation: reveal 0.4s ease; }
-        .card-view { width: 100%; border-radius: 8px; border: 1px solid var(--gold); box-shadow: 0 8px 20px rgba(0,0,0,0.8); }
-        .card-name { font-size: 10px; margin-top: 10px; color: #fff; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+        .card-view { width: 100%; border-radius: 6px; border: 1px solid var(--gold); box-shadow: 0 8px 20px rgba(0,0,0,0.8); }
+        .card-name { font-size: 9px; margin-top: 8px; color: #fff; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
 
         @keyframes reveal { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         #start-screen { position: absolute; inset:0; background:#000; z-index:999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 1s; }
@@ -40,19 +73,26 @@
 
 <div id="container">
     <div id="start-screen">
-        <div class="logo">AURA-3.1<br><span style="font-size: 12px; color: #555;">ULTRA-SOFT ENGINE</span></div>
-        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold;">ВОЙТИ</button>
+        <div class="logo">AURA-3.2<br><span style="font-size: 12px; color: #555;">GEOMETRY CORE</span></div>
+        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold;">ЗАПУСТИТЬ</button>
     </div>
 
     <video id="v" playsinline muted autoplay></video>
     <canvas id="c"></canvas>
     
     <div class="ui">
-        <div class="top-bar"><input type="text" placeholder="Вопрос Вселенной..."></div>
-        <div id="aura-counter">
-            <div id="count-num">0 / 11</div>
+        <div class="top-panel">
+            <div id="aura-counter">
+                <div id="count-num">0</div>
+                <div class="counter-label">АРКАНОВ</div>
+            </div>
         </div>
-        <div class="bottom-bar"><button class="eye-btn" onclick="openTable()">👁️</button></div>
+        
+        <div class="bottom-panel">
+            <button id="scan-trigger" class="action-btn" onclick="toggleScanning()">НАЧАТЬ СКАН</button>
+            <br>
+            <button id="view-btn" class="eye-btn" onclick="openTable()" disabled>👁️</button>
+        </div>
     </div>
 
     <div id="table-view">
@@ -70,10 +110,11 @@
 
     let session, video, canvas, ctx;
     let locked = new Map(), buffer = new Map();
+    let isScanning = false;
 
     async function activate() {
         try {
-            ort.env.wasm.numThreads = 1; // Однопоточный режим для стабильности
+            ort.env.wasm.numThreads = 1;
             session = await ort.InferenceSession.create('./best.onnx', { executionProviders: ['wasm'] });
             video = document.getElementById('v');
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
@@ -88,6 +129,13 @@
                 loop();
             };
         } catch (e) { alert("ERROR: " + e); }
+    }
+
+    function toggleScanning() {
+        isScanning = !isScanning;
+        const btn = document.getElementById('scan-trigger');
+        btn.innerText = isScanning ? "ОСТАНОВИТЬ" : "НАЧАТЬ СКАН";
+        btn.classList.toggle('active', isScanning);
     }
 
     function getIOU(b1, b2) {
@@ -122,56 +170,69 @@
         for (let i=0; i<anchors; i++) {
             let conf = 0, cls = -1;
             for (let c=4; c<85; c++) { if (data[c*anchors+i] > conf) { conf = data[c*anchors+i]; cls = c-4; } }
-            
-            // ПРЕДЕЛЬНАЯ ЧУВСТВИТЕЛЬНОСТЬ (0.30)
             if (conf > 0.30) cands.push({ conf, cls, x: data[0*anchors+i]*sx, y: data[1*anchors+i]*sy, w: data[2*anchors+i]*sx, h: data[3*anchors+i]*sy });
         }
-        
         cands.sort((a,b) => b.conf - a.conf);
         let final = [];
-        // ДОПУСК НАЛОЖЕНИЙ (0.60) — карты могут лежать ближе друг к другу
         cands.forEach(c => { if (!final.some(f => getIOU(c, f) > 0.60)) final.push(c); });
 
         final.forEach(item => {
             if (locked.has(item.cls)) { render(item, "#d4af37", true); return; }
             
-            // МЯГКИЙ ПОРОГ ФИКСАЦИИ (0.40)
-            if (item.conf > 0.40) {
+            // ЗАХВАТ РАБОТАЕТ ТОЛЬКО ПРИ ВКЛЮЧЕННОЙ КНОПКЕ
+            if (isScanning && item.conf > 0.40) {
                 let b = buffer.get(item.cls) || { count: 0 };
                 b.count++; buffer.set(item.cls, b);
-                
-                // СКОРОСТЬ СВЕТА (3 кадра) — мгновенный "захват" аркана
                 if (b.count > 3) {
                     locked.set(item.cls, { ...item, name: RU[item.cls], file: FILE[item.cls] });
                     updateCounter();
                     if (navigator.vibrate) navigator.vibrate(40);
                 }
                 render(item, "#00ffea", false);
+            } else if (!isScanning) {
+                // В РЕЖИМЕ ПРИЦЕЛИВАНИЯ ПРОСТО РИСУЕМ РАМКИ
+                render(item, "rgba(255,255,255,0.3)", false);
             }
         });
+        document.getElementById('view-btn').disabled = (locked.size === 0);
     }
 
     function updateCounter() {
         const el = document.getElementById('count-num');
-        el.innerText = `${locked.size} / 11`;
+        el.innerText = locked.size;
         el.classList.add('pulse');
         setTimeout(() => el.classList.remove('pulse'), 400);
     }
 
     function render(item, col, isL) {
         ctx.strokeStyle = col; ctx.lineWidth = isL ? 2 : 1;
-        ctx.setLineDash(isL ? [] : [5,5]);
         ctx.strokeRect(item.x-item.w/2, item.y-item.h/2, item.w, item.h);
-        ctx.fillStyle = col; ctx.font = "bold 12px Cinzel";
-        ctx.fillText(isL ? item.name : `${(item.conf*100).toFixed(0)}%`, item.x-item.w/2, item.y-item.h/2-10);
+        if (isL) {
+            ctx.fillStyle = col; ctx.font = "bold 12px Cinzel";
+            ctx.fillText(item.name, item.x-item.w/2, item.y-item.h/2-10);
+        }
     }
 
     function openTable() {
-        if (locked.size === 0) return;
+        isScanning = false;
+        document.getElementById('scan-trigger').innerText = "НАЧАТЬ СКАН";
+        document.getElementById('scan-trigger').classList.remove('active');
+        
         const grid = document.getElementById('grid');
         grid.innerHTML = "";
-        const sorted = Array.from(locked.values()).sort((a,b) => (a.y*canvas.width + a.x) - (b.y*canvas.width + b.x));
-        sorted.forEach(c => {
+        
+        // УМНАЯ ГЕОМЕТРИЯ: Сначала сортируем по Y (ряды), потом по X в каждом ряду
+        const cards = Array.from(locked.values());
+        cards.sort((a, b) => {
+            const rowDiff = a.y - b.y;
+            // Если карты в одном "ряду" (разница по Y меньше 15% высоты кадра)
+            if (Math.abs(rowDiff) < canvas.height * 0.15) {
+                return a.x - b.x;
+            }
+            return rowDiff;
+        });
+
+        cards.forEach(c => {
             const div = document.createElement('div');
             div.className = 'card-node';
             div.innerHTML = `<img src="./cards/${c.file}.jpg" class="card-view"><div class="card-name">${c.name}</div>`;
@@ -180,192 +241,12 @@
         document.getElementById('table-view').style.display = 'flex';
     }
 
-    function clearScan() { document.getElementById('table-view').style.display = 'none'; locked.clear(); buffer.clear(); document.getElementById('count-num').innerText = "0 / 11"; }
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AURA-3.1 ULTRA-SOFT</title>
-    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
-    <style>
-        :root { --gold: #d4af37; --neon: #00ffea; --bg: #000; }
-        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Roboto', sans-serif; color: var(--gold); }
-        #container { position: relative; width: 100vw; height: 100vh; }
-        video { width: 100%; height: 100%; object-fit: cover; display: none; }
-        canvas { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
-
-        .ui { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; z-index: 10; }
-        .top-bar { background: rgba(0,0,0,0.85); padding: 20px; pointer-events: auto; border-bottom: 1px solid var(--gold); }
-        input { background: rgba(255,255,255,0.05); border: 1px solid var(--gold); color: #fff; padding: 12px; border-radius: 5px; width: 90%; display: block; margin: 0 auto; outline: none; font-size: 16px; }
-
-        #aura-counter { position: absolute; bottom: 135px; left: 50%; transform: translateX(-50%); text-align: center; }
-        #count-num { font-family: 'Cinzel', serif; font-size: 38px; color: var(--gold); text-shadow: 0 0 15px var(--gold); transition: 0.3s; }
-        .pulse { color: var(--neon) !important; text-shadow: 0 0 25px var(--neon) !important; transform: scale(1.1); }
-
-        .bottom-bar { padding: 40px; pointer-events: auto; text-align: center; background: linear-gradient(to top, #000, transparent); }
-        .eye-btn { background: var(--gold); border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 35px; box-shadow: 0 0 30px var(--gold); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-
-        #table-view { position: absolute; inset: 0; background: radial-gradient(#1a1a1a, #000); z-index: 100; display: none; flex-direction: column; }
-        .scroll-grid { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; align-items: center; }
-        .spread { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 15px; width: 100%; max-width: 900px; }
-        .card-node { display: flex; flex-direction: column; align-items: center; animation: reveal 0.4s ease; }
-        .card-view { width: 100%; border-radius: 8px; border: 1px solid var(--gold); box-shadow: 0 8px 20px rgba(0,0,0,0.8); }
-        .card-name { font-size: 10px; margin-top: 10px; color: #fff; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
-
-        @keyframes reveal { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        #start-screen { position: absolute; inset:0; background:#000; z-index:999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 1s; }
-        .logo { font-family: 'Cinzel', serif; font-size: 42px; color: var(--gold); letter-spacing: 8px; text-align: center; }
-    </style>
-</head>
-<body>
-
-<div id="container">
-    <div id="start-screen">
-        <div class="logo">AURA-3.1<br><span style="font-size: 12px; color: #555;">ULTRA-SOFT ENGINE</span></div>
-        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold;">ВОЙТИ</button>
-    </div>
-
-    <video id="v" playsinline muted autoplay></video>
-    <canvas id="c"></canvas>
-    
-    <div class="ui">
-        <div class="top-bar"><input type="text" placeholder="Вопрос Вселенной..."></div>
-        <div id="aura-counter">
-            <div id="count-num">0 / 11</div>
-        </div>
-        <div class="bottom-bar"><button class="eye-btn" onclick="openTable()">👁️</button></div>
-    </div>
-
-    <div id="table-view">
-        <div class="scroll-grid">
-            <h2 style="font-family: 'Cinzel'; margin-bottom: 35px; letter-spacing: 6px;">РАСКЛАД</h2>
-            <div id="grid" class="spread"></div>
-        </div>
-        <button onclick="clearScan()" style="padding: 25px; background: #000; color: var(--gold); border: none; border-top: 1px solid var(--gold); cursor: pointer; font-family: 'Cinzel'; font-weight: bold;">НОВЫЙ ЦИКЛ</button>
-    </div>
-</div>
-
-<script>
-    const RU = ["Шут", "Маг", "Жрица", "Императрица", "Император", "Иерофант", "Влюбленные", "Колесница", "Справедливость", "Отшельник", "Колесо Фортуны", "Сила", "Повешенный", "Смерть", "Умеренность", "Дьявол", "Башня", "Звезда", "Луна", "Солнце", "Суд", "Мир", "Герой", "Белая Карта", "Туз Жезлов", "2 Жезлов", "3 Жезлов", "4 Жезлов", "5 Жезлов", "6 Жезлов", "7 Жезлов", "8 Жезлов", "9 Жезлов", "10 Жезлов", "Паж Жезлов", "Рыцарь Жезлов", "Королева Жезлов", "Король Жезлов", "Туз Кубков", "2 Кубков", "3 Кубков", "4 Кубков", "5 Кубков", "6 Кубков", "7 Кубков", "8 Кубков", "9 Кубков", "10 Кубков", "Паж Кубков", "Рыцарь Кубков", "Королева Кубков", "Король Кубков", "Туз Мечей", "2 Мечей", "3 Мечей", "4 Мечей", "5 Мечей", "6 Мечей", "7 Мечей", "8 Мечей", "9 Мечей", "10 Мечей", "Паж Мечей", "Рыцарь Мечей", "Королева Мечей", "Король Мечей", "Туз Пентаклей", "2 Пентаклей", "3 Пентаклей", "4 Пентаклей", "5 Пентаклей", "6 Пентаклей", "7 Пентаклей", "8 Пентаклей", "9 Пентаклей", "10 Пентаклей", "Паж Пентаклей", "Рыцарь Пентаклей", "Королева Пентаклей", "Король Пентаклей", "Рубашка"];
-    const FILE = ["00_fool","01_magician","02_high_priestess","03_empress","04_emperor","05_hierophant","06_lovers","07_chariot","08_justice","09_hermit","10_wheel_of_fortune","11_strength","12_hanged_man","13_death","14_temperance","15_devil","16_tower","17_star","18_moon","19_sun","20_judgement","21_world","22_hero","23_white_card","wands_01_ace","wands_02_two","wands_03_three","wands_04_four","wands_05_five","wands_06_six","wands_07_seven","wands_08_eight","wands_09_nine","wands_10_ten","wands_11_page","wands_12_knight","wands_13_queen","wands_14_king","cups_01_ace","cups_02_two","cups_03_three","cups_04_four","cups_05_five","cups_06_six","cups_07_seven","cups_08_eight","cups_09_nine","cups_10_ten","cups_11_page","cups_12_knight","cups_13_queen","cups_14_king","swords_01_ace","swords_02_two","swords_03_three","swords_04_four","swords_05_five","swords_06_six","swords_07_seven","swords_08_eight","swords_09_nine","swords_10_ten","swords_11_page","swords_12_knight","swords_13_queen","swords_14_king","pentacles_01_ace","pentacles_02_two","pentacles_03_three","pentacles_04_four","pentacles_05_five","pentacles_06_six","pentacles_07_seven","pentacles_08_eight","pentacles_09_nine","pentacles_10_ten","pentacles_11_page","pentacles_12_knight","pentacles_13_queen","pentacles_14_king","rubashka"];
-
-    let session, video, canvas, ctx;
-    let locked = new Map(), buffer = new Map();
-
-    async function activate() {
-        try {
-            ort.env.wasm.numThreads = 1; // Однопоточный режим для стабильности
-            session = await ort.InferenceSession.create('./best.onnx', { executionProviders: ['wasm'] });
-            video = document.getElementById('v');
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-                canvas = document.getElementById('c');
-                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-                ctx = canvas.getContext('2d');
-                document.getElementById('start-screen').style.opacity = '0';
-                setTimeout(() => document.getElementById('start-screen').style.display = 'none', 1000);
-                video.style.display = 'block';
-                loop();
-            };
-        } catch (e) { alert("ERROR: " + e); }
+    function clearScan() {
+        document.getElementById('table-view').style.display = 'none';
+        locked.clear(); buffer.clear();
+        document.getElementById('count-num').innerText = "0";
+        isScanning = false;
     }
-
-    function getIOU(b1, b2) {
-        const x1 = Math.max(b1.x - b1.w/2, b2.x - b2.w/2);
-        const y1 = Math.max(b1.y - b1.h/2, b2.y - b2.h/2);
-        const x2 = Math.min(b1.x + b1.w/2, b2.x + b2.w/2);
-        const y2 = Math.min(b1.y + b1.h/2, b2.y + b2.h/2);
-        const inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
-        const union = (b1.w * b1.h) + (b2.w * b2.h) - inter;
-        return inter / union;
-    }
-
-    async function loop() {
-        const mat = document.createElement('canvas'); mat.width = mat.height = 640;
-        mat.getContext('2d').drawImage(video, 0, 0, 640, 640);
-        const pix = mat.getContext('2d').getImageData(0,0,640,640).data;
-        const input = new Float32Array(3 * 640 * 640);
-        for (let i=0; i<640*640; i++) {
-            input[i] = pix[i*4]/255; input[640*640+i] = pix[i*4+1]/255; input[2*640*640+i] = pix[i*4+2]/255;
-        }
-        const tensor = new ort.Tensor('float32', input, [1, 3, 640, 640]);
-        const res = await session.run({ [session.inputNames[0]]: tensor });
-        process(res[session.outputNames[0]].data);
-        requestAnimationFrame(loop);
-    }
-
-    function process(data) {
-        const anchors = 8400;
-        const sx = canvas.width / 640, sy = canvas.height / 640;
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        let cands = [];
-        for (let i=0; i<anchors; i++) {
-            let conf = 0, cls = -1;
-            for (let c=4; c<85; c++) { if (data[c*anchors+i] > conf) { conf = data[c*anchors+i]; cls = c-4; } }
-            
-            // ПРЕДЕЛЬНАЯ ЧУВСТВИТЕЛЬНОСТЬ (0.30)
-            if (conf > 0.30) cands.push({ conf, cls, x: data[0*anchors+i]*sx, y: data[1*anchors+i]*sy, w: data[2*anchors+i]*sx, h: data[3*anchors+i]*sy });
-        }
-        
-        cands.sort((a,b) => b.conf - a.conf);
-        let final = [];
-        // ДОПУСК НАЛОЖЕНИЙ (0.60) — карты могут лежать ближе друг к другу
-        cands.forEach(c => { if (!final.some(f => getIOU(c, f) > 0.60)) final.push(c); });
-
-        final.forEach(item => {
-            if (locked.has(item.cls)) { render(item, "#d4af37", true); return; }
-            
-            // МЯГКИЙ ПОРОГ ФИКСАЦИИ (0.40)
-            if (item.conf > 0.40) {
-                let b = buffer.get(item.cls) || { count: 0 };
-                b.count++; buffer.set(item.cls, b);
-                
-                // СКОРОСТЬ СВЕТА (3 кадра) — мгновенный "захват" аркана
-                if (b.count > 3) {
-                    locked.set(item.cls, { ...item, name: RU[item.cls], file: FILE[item.cls] });
-                    updateCounter();
-                    if (navigator.vibrate) navigator.vibrate(40);
-                }
-                render(item, "#00ffea", false);
-            }
-        });
-    }
-
-    function updateCounter() {
-        const el = document.getElementById('count-num');
-        el.innerText = `${locked.size} / 11`;
-        el.classList.add('pulse');
-        setTimeout(() => el.classList.remove('pulse'), 400);
-    }
-
-    function render(item, col, isL) {
-        ctx.strokeStyle = col; ctx.lineWidth = isL ? 2 : 1;
-        ctx.setLineDash(isL ? [] : [5,5]);
-        ctx.strokeRect(item.x-item.w/2, item.y-item.h/2, item.w, item.h);
-        ctx.fillStyle = col; ctx.font = "bold 12px Cinzel";
-        ctx.fillText(isL ? item.name : `${(item.conf*100).toFixed(0)}%`, item.x-item.w/2, item.y-item.h/2-10);
-    }
-
-    function openTable() {
-        if (locked.size === 0) return;
-        const grid = document.getElementById('grid');
-        grid.innerHTML = "";
-        const sorted = Array.from(locked.values()).sort((a,b) => (a.y*canvas.width + a.x) - (b.y*canvas.width + b.x));
-        sorted.forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'card-node';
-            div.innerHTML = `<img src="./cards/${c.file}.jpg" class="card-view"><div class="card-name">${c.name}</div>`;
-            grid.appendChild(div);
-        });
-        document.getElementById('table-view').style.display = 'flex';
-    }
-
-    function clearScan() { document.getElementById('table-view').style.display = 'none'; locked.clear(); buffer.clear(); document.getElementById('count-num').innerText = "0 / 11"; }
 </script>
 </body>
 </html>
