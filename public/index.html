@@ -13,45 +13,52 @@
         video { width: 100%; height: 100%; object-fit: cover; display: none; }
         canvas { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 
-        /* ИНТЕРФЕЙС */
+        /* ВСПЫШКА ЗАХВАТА */
+        #shutter { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 1000; transition: 0.1s; }
+
         .ui { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; z-index: 10; }
         .top-panel { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); padding: 20px; pointer-events: auto; text-align: center; }
-        #count-num { font-family: 'Cinzel', serif; font-size: 60px; font-weight: bold; color: var(--gold); text-shadow: 0 0 20px var(--gold); }
-        .counter-label { font-size: 9px; letter-spacing: 5px; opacity: 0.6; margin-top: -10px; }
+        #count-num { font-family: 'Cinzel', serif; font-size: 64px; font-weight: bold; color: var(--gold); text-shadow: 0 0 25px var(--gold); }
+        .counter-label { font-size: 9px; letter-spacing: 5px; opacity: 0.6; margin-top: -10px; text-transform: uppercase; }
 
         .bottom-panel { padding: 40px; pointer-events: auto; text-align: center; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); }
-        .action-btn { background: transparent; border: 2px solid var(--gold); color: var(--gold); padding: 16px 40px; border-radius: 40px; font-family: 'Cinzel'; font-weight: bold; cursor: pointer; letter-spacing: 3px; }
-        .action-btn.active { background: #8b0000; border-color: #ff4500; color: #fff; box-shadow: 0 0 20px #ff4500; }
+        .action-btn { background: transparent; border: 2px solid var(--gold); color: var(--gold); padding: 16px 40px; border-radius: 40px; font-family: 'Cinzel'; font-weight: bold; cursor: pointer; letter-spacing: 3px; transition: 0.3s; }
+        .action-btn.active { background: #8b0000; border-color: #ff4500; color: #fff; }
+
         .eye-btn { background: var(--gold); border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 35px; box-shadow: 0 0 30px var(--gold); cursor: pointer; margin-top: 20px; }
+        .eye-btn:disabled { opacity: 0.05; }
 
-        /* ВИРТУАЛЬНЫЙ СТОЛ (СЕТКА БЕЗ НАЛОЖЕНИЙ) */
+        /* ВИРТУАЛЬНЫЙ СТОЛ: ГЕШТАЛЬТ-СЕТКА */
         #table-view { position: absolute; inset: 0; background: radial-gradient(#1a1a1a, #000); z-index: 100; display: none; flex-direction: column; }
-        .spread-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; align-content: center; justify-items: center; }
-        .card-box { width: 90%; max-width: 100px; text-align: center; animation: reveal 0.5s ease; cursor: pointer; }
-        .card-img { width: 100%; border-radius: 5px; border: 1px solid var(--gold); transition: 0.3s; }
-        .card-name-label { font-size: 8px; color: #fff; margin-top: 5px; text-transform: uppercase; }
+        #grid-canvas { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; align-content: center; justify-items: center; }
+        
+        .card-box { width: 100%; max-width: 95px; text-align: center; animation: reveal 0.5s ease; }
+        .card-img { width: 100%; border-radius: 5px; border: 1px solid var(--gold); box-shadow: 0 5px 15px #000; }
+        .card-info { font-size: 8px; color: #fff; margin-top: 5px; text-transform: uppercase; }
 
-        /* ЗУМ-МОДАЛКА */
-        #zoom-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: none; align-items: center; justify-content: center; flex-direction: column; }
-        #zoom-img { width: 70%; border: 2px solid var(--gold); border-radius: 10px; box-shadow: 0 0 40px var(--gold); }
-        #zoom-text { margin-top: 30px; font-family: 'Cinzel'; font-size: 24px; text-align: center; letter-spacing: 4px; }
+        /* ЗУМ МОДАЛКА */
+        #zoom-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.98); z-index: 200; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
+        #zoom-img { width: 75%; max-width: 300px; border: 2px solid var(--gold); border-radius: 10px; }
+        #zoom-title { font-family: 'Cinzel'; font-size: 24px; margin-top: 20px; color: var(--gold); }
+        #zoom-desc { font-size: 16px; text-align: center; margin-top: 15px; color: #fff; line-height: 1.4; max-width: 80%; }
 
-        @keyframes reveal { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        @keyframes reveal { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
 
+<div id="shutter"></div>
 <div id="container">
     <div id="start-screen" style="position:absolute; inset:0; background:#000; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div style="font-family: 'Cinzel'; font-size: 44px; color: var(--gold); letter-spacing: 10px;">AURA 3.1</div>
-        <button onclick="activate()" style="margin-top:50px; padding:15px 40px; background:transparent; color:var(--gold); border:2px solid var(--gold); border-radius:40px; font-family:'Cinzel';">СИНХРОНИЗАЦИЯ</button>
+        <button onclick="activate()" style="margin-top:50px; padding:15px 40px; background:transparent; color:var(--gold); border:2px solid var(--gold); border-radius:40px; font-family:'Cinzel'; cursor:pointer;">ВОЙТИ</button>
     </div>
 
     <video id="v" playsinline muted autoplay></video>
     <canvas id="c"></canvas>
     
     <div class="ui">
-        <div class="top-panel"><div id="count-num">0</div><div class="counter-label">АРКАНОВ</div></div>
+        <div class="top-panel"><div id="count-num">0</div><div class="counter-label">Арканов в фокусе</div></div>
         <div class="bottom-panel">
             <button id="scan-trigger" class="action-btn" onclick="toggleScanning()">НАЧАТЬ СКАН</button><br>
             <button id="view-btn" class="eye-btn" onclick="openTable()" disabled>👁️</button>
@@ -59,43 +66,56 @@
     </div>
 
     <div id="table-view">
-        <div class="spread-grid" id="grid"></div>
-        <button onclick="clearScan()" style="padding: 25px; background: #000; color: var(--gold); border: none; border-top: 1px solid var(--gold); cursor: pointer; font-family: 'Cinzel'; letter-spacing: 3px;">НОВЫЙ ЦИКЛ</button>
+        <div id="grid-canvas"></div>
+        <button onclick="clearScan()" style="padding: 25px; background: #000; color: var(--gold); border: none; border-top: 1px solid var(--gold); font-family: 'Cinzel'; cursor:pointer;">НОВЫЙ ЦИКЛ</button>
     </div>
 
     <div id="zoom-modal" onclick="this.style.display='none'">
         <img id="zoom-img" src="">
-        <div id="zoom-text"></div>
-        <div style="font-size: 10px; opacity: 0.5; margin-top: 10px;">(НАЖМИТЕ, ЧТОБЫ ВЕРНУТЬСЯ)</div>
+        <div id="zoom-title"></div>
+        <div id="zoom-desc"></div>
     </div>
 </div>
 
 <script>
-    const RU = ["Шут", "Маг", "Жрица", "Императрица", "Император", "Иерофант", "Влюбленные", "Колесница", "Справедливость", "Отшельник", "Колесо Фортуны", "Сила", "Повешенный", "Смерть", "Умеренность", "Дьявол", "Башня", "Звезда", "Луна", "Солнце", "Суд", "Мир", "Герой", "Белая Карта", "Туз Жезлов", "2 Жезлов", "3 Жезлов", "4 Жезлов", "5 Жезлов", "6 Жезлов", "7 Жезлов", "8 Жезлов", "9 Жезлов", "10 Жезлов", "Паж Жезлов", "Рыцарь Жезлов", "Королева Жезлов", "Король Жезлов", "Туз Кубков", "2 Кубков", "3 Кубков", "4 Кубков", "5 Кубков", "6 Кубков", "7 Кубков", "8 Кубков", "9 Кубков", "10 Кубков", "Паж Кубков", "Рыцарь Кубков", "Королева Кубков", "Король Кубков", "Туз Мечей", "2 Мечей", "3 Мечей", "4 Мечей", "5 Мечей", "6 Мечей", "7 Мечей", "8 Мечей", "9 Мечей", "10 Мечей", "Паж Мечей", "Рыцарь Мечей", "Королева Мечей", "Король Мечей", "Туз Пентаклей", "2 Пентаклей", "3 Пентаклей", "4 Пентаклей", "5 Пентаклей", "6 Пентаклей", "7 Пентаклей", "8 Пентаклей", "9 Пентаклей", "10 Пентаклей", "Паж Пентаклей", "Рыцарь Пентаклей", "Королева Пентаклей", "Король Пентаклей", "Рубашка"];
-    const FILE = ["00_fool","01_magician","02_high_priestess","03_empress","04_emperor","05_hierophant","06_lovers","07_chariot","08_justice","09_hermit","10_wheel_of_fortune","11_strength","12_hanged_man","13_death","14_temperance","15_devil","16_tower","17_star","18_moon","19_sun","20_judgement","21_world","22_hero","23_white_card","wands_01_ace","wands_02_two","wands_03_three","wands_04_four","wands_05_five","wands_06_six","wands_07_seven","wands_08_eight","wands_09_nine","wands_10_ten","wands_11_page","wands_12_knight","wands_13_queen","wands_14_king","cups_01_ace","cups_02_two","cups_03_three","cups_04_four","cups_05_five","cups_06_six","cups_07_seven","cups_08_eight","cups_09_nine","cups_10_ten","cups_11_page","cups_12_knight","cups_13_queen","cups_14_king","swords_01_ace","swords_02_two","swords_03_three","swords_04_four","swords_05_five","swords_06_six","swords_07_seven","swords_08_eight","swords_09_nine","swords_10_ten","swords_11_page","swords_12_knight","swords_13_queen","swords_14_king","pentacles_01_ace","pentacles_02_two","pentacles_03_three","pentacles_04_four","pentacles_05_five","pentacles_06_six","pentacles_07_seven","pentacles_08_eight","pentacles_09_nine","pentacles_10_ten","pentacles_11_page","pentacles_12_knight","pentacles_13_queen","pentacles_14_king","rubashka"];
+    // Классические значения + твои арканы
+    const DATA = {
+        "00_fool": ["Шут", "Начало пути, риск"],
+        "01_magician": ["Маг", "Воля, действие"],
+        "22_hero": ["Герой", "Опыт, путь мастера"],
+        "23_white_card": ["Белая Карта", "Свобода выбора"],
+        "rubashka": ["Рубашка", "Тайна скрыта"]
+        // ... (остальные 81 карта добавляются по этому же шаблону)
+    };
+
+    const NAMES_RU = ["Шут", "Маг", "Жрица", "Императрица", "Император", "Иерофант", "Влюбленные", "Колесница", "Справедливость", "Отшельник", "Колесо Фортуны", "Сила", "Повешенный", "Смерть", "Умеренность", "Дьявол", "Башня", "Звезда", "Луна", "Солнце", "Суд", "Мир", "Герой", "Белая Карта", "Туз Жезлов", "2 Жезлов", "3 Жезлов", "4 Жезлов", "5 Жезлов", "6 Жезлов", "7 Жезлов", "8 Жезлов", "9 Жезлов", "10 Жезлов", "Паж Жезлов", "Рыцарь Жезлов", "Королева Жезлов", "Король Жезлов", "Туз Кубков", "2 Кубков", "3 Кубков", "4 Кубков", "5 Кубков", "6 Кубков", "7 Кубков", "8 Кубков", "9 Кубков", "10 Кубков", "Паж Кубков", "Рыцарь Кубков", "Королева Кубков", "Король Кубков", "Туз Мечей", "2 Мечей", "3 Мечей", "4 Мечей", "5 Мечей", "6 Мечей", "7 Мечей", "8 Мечей", "9 Мечей", "10 Мечей", "Паж Мечей", "Рыцарь Мечей", "Королева Мечей", "Король Мечей", "Туз Пентаклей", "2 Пентаклей", "3 Пентаклей", "4 Пентаклей", "5 Пентаклей", "6 Пентаклей", "7 Пентаклей", "8 Пентаклей", "9 Пентаклей", "10 Пентаклей", "Паж Пентаклей", "Рыцарь Пентаклей", "Королева Пентаклей", "Король Пентаклей", "Рубашка"];
+    const FILE_MAP = ["00_fool","01_magician","02_high_priestess","03_empress","04_emperor","05_hierophant","06_lovers","07_chariot","08_justice","09_hermit","10_wheel_of_fortune","11_strength","12_hanged_man","13_death","14_temperance","15_devil","16_tower","17_star","18_moon","19_sun","20_judgement","21_world","22_hero","23_white_card","wands_01_ace","wands_02_two","wands_03_three","wands_04_four","wands_05_five","wands_06_six","wands_07_seven","wands_08_eight","wands_09_nine","wands_10_ten","wands_11_page","wands_12_knight","wands_13_queen","wands_14_king","cups_01_ace","cups_02_two","cups_03_three","cups_04_four","cups_05_five","cups_06_six","cups_07_seven","cups_08_eight","cups_09_nine","cups_10_ten","cups_11_page","cups_12_knight","cups_13_queen","cups_14_king","swords_01_ace","swords_02_two","swords_03_three","swords_04_four","swords_05_five","swords_06_six","swords_07_seven","swords_08_eight","swords_09_nine","swords_10_ten","swords_11_page","swords_12_knight","swords_13_queen","swords_14_king","pentacles_01_ace","pentacles_02_two","pentacles_03_three","pentacles_04_four","pentacles_05_five","pentacles_06_six","pentacles_07_seven","pentacles_08_eight","pentacles_09_nine","pentacles_10_ten","pentacles_11_page","pentacles_12_knight","pentacles_13_queen","pentacles_14_king","rubashka"];
 
     let session, video, canvas, ctx, isScanning = false;
     let locked = new Map(), buffer = new Map();
 
     async function activate() {
-        try {
-            ort.env.wasm.numThreads = 1;
-            session = await ort.InferenceSession.create('./best.onnx', { executionProviders: ['wasm'] });
-            video = document.getElementById('v');
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-                canvas = document.getElementById('c');
-                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-                ctx = canvas.getContext('2d');
-                document.getElementById('start-screen').style.display = 'none';
-                video.style.display = 'block';
-                loop();
-            };
-        } catch (e) { alert(e); }
+        ort.env.wasm.numThreads = 1;
+        session = await ort.InferenceSession.create('./best.onnx', { executionProviders: ['wasm'] });
+        video = document.getElementById('v');
+        const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+        video.srcObject = s;
+        video.onloadedmetadata = () => {
+            canvas = document.getElementById('c');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            ctx = canvas.getContext('2d');
+            document.getElementById('start-screen').style.display='none';
+            video.style.display='block'; loop();
+        };
     }
 
     function toggleScanning() {
+        if (isScanning) {
+            // ЭФФЕКТ ЗАТВОРА
+            const s = document.getElementById('shutter');
+            s.style.opacity = 1; setTimeout(() => s.style.opacity = 0, 100);
+            if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+        }
         isScanning = !isScanning;
         const btn = document.getElementById('scan-trigger');
         btn.innerText = isScanning ? "ЗАФИКСИРОВАТЬ" : "ПРОДОЛЖИТЬ";
@@ -105,49 +125,32 @@
     async function loop() {
         const mat = document.createElement('canvas'); mat.width = mat.height = 640;
         mat.getContext('2d').drawImage(video, 0, 0, 640, 640);
+        const tensor = new ort.Tensor('float32', new Float32Array(3*640*640), [1,3,640,640]);
         const pix = mat.getContext('2d').getImageData(0,0,640,640).data;
-        const input = new Float32Array(3 * 640 * 640);
-        for (let i=0; i<640*640; i++) {
-            input[i] = pix[i*4]/255; input[640*640+i] = pix[i*4+1]/255; input[2*640*640+i] = pix[i*4+2]/255;
+        for(let i=0; i<640*640; i++) {
+            tensor.data[i] = pix[i*4]/255; tensor.data[640*640+i] = pix[i*4+1]/255; tensor.data[2*640*640+i] = pix[i*4+2]/255;
         }
-        const tensor = new ort.Tensor('float32', input, [1, 3, 640, 640]);
-        const res = await session.run({ [session.inputNames[0]]: tensor });
+        const res = await session.run({[session.inputNames[0]]: tensor});
         process(res[session.outputNames[0]].data);
         requestAnimationFrame(loop);
     }
 
     function process(data) {
-        const anchors = 8400;
-        const sx = canvas.width / 640, sy = canvas.height / 640;
+        const sx = canvas.width/640, sy = canvas.height/640;
         ctx.clearRect(0,0,canvas.width,canvas.height);
         let cands = [];
-        for (let i=0; i<anchors; i++) {
-            let conf = 0, cls = -1;
-            for (let c=4; c<85; c++) { if (data[c*anchors+i] > conf) { conf = data[c*anchors+i]; cls = c-4; } }
-            if (conf > 0.30) cands.push({ conf, cls, x: data[0*anchors+i]*sx, y: data[1*anchors+i]*sy, w: data[2*anchors+i]*sx, h: data[3*anchors+i]*sy });
+        for(let i=0; i<8400; i++) {
+            let conf=0, cls=-1;
+            for(let c=4; c<85; c++) { if(data[c*8400+i]>conf) { conf=data[c*8400+i]; cls=c-4; } }
+            if(conf>0.30) cands.push({conf, cls, x:data[0*8400+i]*sx, y:data[1*8400+i]*sy, w:data[2*8400+i]*sx, h:data[3*8400+i]*sy});
         }
-        
-        cands.sort((a,b) => b.conf - a.conf);
-        let final = [];
-        // ЛОЯЛЬНЫЙ IOU (0.90) - ЧТОБЫ СКВОЗЬ НАЛОЖЕНИЯ ВИДЕТЬ ВСЕ КАРТЫ
-        cands.forEach(c => {
-            if (!final.some(f => {
-                const x1 = Math.max(c.x-c.w/2, f.x-f.w/2), y1 = Math.max(c.y-c.h/2, f.y-f.h/2);
-                const x2 = Math.min(c.x+c.w/2, f.x+f.w/2), y2 = Math.min(c.y+c.h/2, f.y+f.h/2);
-                const inter = Math.max(0, x2-x1) * Math.max(0, y2-y1);
-                return inter / (c.w*c.h + f.w*f.h - inter) > 0.90;
-            })) final.push(c);
-        });
-
-        final.forEach(item => {
-            if (locked.has(item.cls)) { ctx.strokeStyle = "#d4af37"; ctx.strokeRect(item.x-item.w/2, item.y-item.h/2, item.w, item.h); return; }
+        cands.sort((a,b)=>b.conf-a.conf).slice(0,11).forEach(item => {
+            if (locked.has(item.cls)) { ctx.strokeStyle="#d4af37"; ctx.strokeRect(item.x-item.w/2, item.y-item.h/2, item.w, item.h); return; }
             if (isScanning && locked.size < 11) {
-                let b = buffer.get(item.cls) || { count: 0 };
-                b.count++; buffer.set(item.cls, b);
-                if (b.count > 3) {
-                    locked.set(item.cls, { ...item, name: RU[item.cls], file: FILE[item.cls] });
+                let b = buffer.get(item.cls) || {c:0}; b.c++; buffer.set(item.cls, b);
+                if (b.c > 3) {
+                    locked.set(item.cls, {...item, ru: NAMES_RU[item.cls], file: FILE_MAP[item.cls]});
                     document.getElementById('count-num').innerText = locked.size;
-                    if (navigator.vibrate) navigator.vibrate(40);
                 }
             }
             ctx.strokeStyle = isScanning ? "#00ffea" : "rgba(255,255,255,0.2)";
@@ -158,36 +161,35 @@
 
     function openTable() {
         isScanning = false;
-        const grid = document.getElementById('grid');
+        const grid = document.getElementById('grid-canvas');
         grid.innerHTML = "";
         
-        // СОРТИРОВКА: СНАЧАЛА ПО ВЫСОТЕ (РЯДЫ), ПОТОМ ПО ГОРИЗОНТАЛИ
-        const cards = Array.from(locked.values()).sort((a, b) => {
+        // ГЕШТАЛЬТ-СОРТИРОВКА (Матрица 3х3 или Ряды)
+        const cards = Array.from(locked.values()).sort((a,b) => {
             if (Math.abs(a.y - b.y) < canvas.height * 0.15) return a.x - b.x;
             return a.y - b.y;
         });
 
         cards.forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'card-box';
-            div.onclick = () => showZoom(c);
-            div.innerHTML = `<img src="./cards/${c.file}.jpg" class="card-img"><div class="card-name-label">${c.name}</div>`;
-            grid.appendChild(div);
+            const box = document.createElement('div');
+            box.className = 'card-box';
+            box.onclick = () => {
+                const modal = document.getElementById('zoom-modal');
+                const info = DATA[c.file] || [c.ru, "Классическое значение"];
+                document.getElementById('zoom-img').src = `./cards/${c.file}.jpg`;
+                document.getElementById('zoom-title').innerText = info[0];
+                document.getElementById('zoom-desc').innerText = info[1];
+                modal.style.display = 'flex';
+            };
+            box.innerHTML = `<img src="./cards/${c.file}.jpg" class="card-img"><div class="card-info">${c.ru}</div>`;
+            grid.appendChild(box);
         });
-        document.getElementById('table-view').style.display = 'flex';
-    }
-
-    function showZoom(c) {
-        document.getElementById('zoom-img').src = `./cards/${c.file}.jpg`;
-        document.getElementById('zoom-text').innerText = `${c.name}\n(ВНУТРЕННИЙ ПОТОК)`; //
-        document.getElementById('zoom-modal').style.display = 'flex';
+        document.getElementById('table-view').style.display='flex';
     }
 
     function clearScan() {
-        document.getElementById('table-view').style.display = 'none';
-        locked.clear(); buffer.clear();
-        document.getElementById('count-num').innerText = "0";
-        isScanning = false;
+        document.getElementById('table-view').style.display='none';
+        locked.clear(); buffer.clear(); document.getElementById('count-num').innerText="0";
     }
 </script>
 </body>
