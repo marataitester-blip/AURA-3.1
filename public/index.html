@@ -13,33 +13,38 @@
         video { width: 100%; height: 100%; object-fit: cover; display: none; }
         canvas { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 
+        /* ИНТЕРФЕЙС */
         .ui { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; z-index: 10; }
         .top-panel { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); padding: 20px; pointer-events: auto; text-align: center; }
-        #count-num { font-family: 'Cinzel', serif; font-size: 68px; font-weight: bold; color: var(--gold); text-shadow: 0 0 25px var(--gold); }
-        .counter-label { font-size: 10px; letter-spacing: 5px; opacity: 0.6; margin-top: -12px; text-transform: uppercase; }
+        #count-num { font-family: 'Cinzel', serif; font-size: 60px; font-weight: bold; color: var(--gold); text-shadow: 0 0 20px var(--gold); }
+        .counter-label { font-size: 9px; letter-spacing: 5px; opacity: 0.6; margin-top: -10px; }
 
         .bottom-panel { padding: 40px; pointer-events: auto; text-align: center; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); }
-        .action-btn { background: transparent; border: 2px solid var(--gold); color: var(--gold); padding: 16px 45px; border-radius: 40px; font-family: 'Cinzel'; font-weight: bold; cursor: pointer; letter-spacing: 3px; transition: 0.3s; }
+        .action-btn { background: transparent; border: 2px solid var(--gold); color: var(--gold); padding: 16px 40px; border-radius: 40px; font-family: 'Cinzel'; font-weight: bold; cursor: pointer; letter-spacing: 3px; }
         .action-btn.active { background: #8b0000; border-color: #ff4500; color: #fff; box-shadow: 0 0 20px #ff4500; }
-        .eye-btn { background: var(--gold); border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 35px; box-shadow: 0 0 30px var(--gold); cursor: pointer; margin-top: 25px; }
-        .eye-btn:disabled { opacity: 0.05; }
+        .eye-btn { background: var(--gold); border: none; width: 80px; height: 80px; border-radius: 50%; font-size: 35px; box-shadow: 0 0 30px var(--gold); cursor: pointer; margin-top: 20px; }
 
+        /* ВИРТУАЛЬНЫЙ СТОЛ (СЕТКА БЕЗ НАЛОЖЕНИЙ) */
         #table-view { position: absolute; inset: 0; background: radial-gradient(#1a1a1a, #000); z-index: 100; display: none; flex-direction: column; }
-        .spread-canvas { flex: 1; position: relative; width: 100%; overflow: hidden; }
-        .card-absolute { position: absolute; transform: translate(-50%, -50%); width: 85px; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .card-img { width: 100%; border-radius: 5px; border: 1px solid var(--gold); box-shadow: 0 5px 15px #000; }
-        .card-caption { font-size: 8px; color: #fff; text-align: center; margin-top: 5px; text-transform: uppercase; white-space: nowrap; }
+        .spread-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; align-content: center; justify-items: center; }
+        .card-box { width: 90%; max-width: 100px; text-align: center; animation: reveal 0.5s ease; cursor: pointer; }
+        .card-img { width: 100%; border-radius: 5px; border: 1px solid var(--gold); transition: 0.3s; }
+        .card-name-label { font-size: 8px; color: #fff; margin-top: 5px; text-transform: uppercase; }
 
-        #start-screen { position: absolute; inset:0; background:#000; z-index:999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 1s; }
-        .logo { font-family: 'Cinzel', serif; font-size: 44px; color: var(--gold); letter-spacing: 10px; text-align: center; }
+        /* ЗУМ-МОДАЛКА */
+        #zoom-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        #zoom-img { width: 70%; border: 2px solid var(--gold); border-radius: 10px; box-shadow: 0 0 40px var(--gold); }
+        #zoom-text { margin-top: 30px; font-family: 'Cinzel'; font-size: 24px; text-align: center; letter-spacing: 4px; }
+
+        @keyframes reveal { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
 
 <div id="container">
-    <div id="start-screen">
-        <div class="logo">AURA 3.1<br><span style="font-size: 11px; color: #444;">BY MARAT</span></div>
-        <button onclick="activate()" style="margin-top:60px; padding: 18px 50px; background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 40px; font-family: 'Cinzel'; cursor: pointer; font-weight: bold;">СИНХРОНИЗАЦИЯ</button>
+    <div id="start-screen" style="position:absolute; inset:0; background:#000; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="font-family: 'Cinzel'; font-size: 44px; color: var(--gold); letter-spacing: 10px;">AURA 3.1</div>
+        <button onclick="activate()" style="margin-top:50px; padding:15px 40px; background:transparent; color:var(--gold); border:2px solid var(--gold); border-radius:40px; font-family:'Cinzel';">СИНХРОНИЗАЦИЯ</button>
     </div>
 
     <video id="v" playsinline muted autoplay></video>
@@ -54,8 +59,14 @@
     </div>
 
     <div id="table-view">
-        <div class="spread-canvas" id="spread-canvas"></div>
-        <button onclick="clearScan()" style="padding: 25px; background: #000; color: var(--gold); border: none; border-top: 1px solid var(--gold); cursor: pointer; font-family: 'Cinzel'; font-weight: bold; letter-spacing: 3px;">НОВЫЙ ЦИКЛ</button>
+        <div class="spread-grid" id="grid"></div>
+        <button onclick="clearScan()" style="padding: 25px; background: #000; color: var(--gold); border: none; border-top: 1px solid var(--gold); cursor: pointer; font-family: 'Cinzel'; letter-spacing: 3px;">НОВЫЙ ЦИКЛ</button>
+    </div>
+
+    <div id="zoom-modal" onclick="this.style.display='none'">
+        <img id="zoom-img" src="">
+        <div id="zoom-text"></div>
+        <div style="font-size: 10px; opacity: 0.5; margin-top: 10px;">(НАЖМИТЕ, ЧТОБЫ ВЕРНУТЬСЯ)</div>
     </div>
 </div>
 
@@ -77,12 +88,11 @@
                 canvas = document.getElementById('c');
                 canvas.width = video.videoWidth; canvas.height = video.videoHeight;
                 ctx = canvas.getContext('2d');
-                document.getElementById('start-screen').style.opacity = '0';
-                setTimeout(() => document.getElementById('start-screen').style.display = 'none', 1000);
+                document.getElementById('start-screen').style.display = 'none';
                 video.style.display = 'block';
                 loop();
             };
-        } catch (e) { alert("ERROR: " + e); }
+        } catch (e) { alert(e); }
     }
 
     function toggleScanning() {
@@ -90,16 +100,6 @@
         const btn = document.getElementById('scan-trigger');
         btn.innerText = isScanning ? "ЗАФИКСИРОВАТЬ" : "ПРОДОЛЖИТЬ";
         btn.classList.toggle('active', isScanning);
-    }
-
-    function getIOU(b1, b2) {
-        const x1 = Math.max(b1.x - b1.w/2, b2.x - b2.w/2);
-        const y1 = Math.max(b1.y - b1.h/2, b2.y - b2.h/2);
-        const x2 = Math.min(b1.x + b1.w/2, b2.x + b2.w/2);
-        const y2 = Math.min(b1.y + b1.h/2, b2.y + b2.h/2);
-        const inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
-        const union = (b1.w * b1.h) + (b2.w * b2.h) - inter;
-        return inter / union;
     }
 
     async function loop() {
@@ -126,70 +126,61 @@
             for (let c=4; c<85; c++) { if (data[c*anchors+i] > conf) { conf = data[c*anchors+i]; cls = c-4; } }
             if (conf > 0.30) cands.push({ conf, cls, x: data[0*anchors+i]*sx, y: data[1*anchors+i]*sy, w: data[2*anchors+i]*sx, h: data[3*anchors+i]*sy });
         }
+        
         cands.sort((a,b) => b.conf - a.conf);
         let final = [];
-        // ВЕРТИКАЛЬНЫЙ РЯД (IOU 0.85): позволяет картам стоять очень плотно
-        cands.forEach(c => { if (!final.some(f => getIOU(c, f) > 0.85)) final.push(c); });
+        // ЛОЯЛЬНЫЙ IOU (0.90) - ЧТОБЫ СКВОЗЬ НАЛОЖЕНИЯ ВИДЕТЬ ВСЕ КАРТЫ
+        cands.forEach(c => {
+            if (!final.some(f => {
+                const x1 = Math.max(c.x-c.w/2, f.x-f.w/2), y1 = Math.max(c.y-c.h/2, f.y-f.h/2);
+                const x2 = Math.min(c.x+c.w/2, f.x+f.w/2), y2 = Math.min(c.y+c.h/2, f.y+f.h/2);
+                const inter = Math.max(0, x2-x1) * Math.max(0, y2-y1);
+                return inter / (c.w*c.h + f.w*f.h - inter) > 0.90;
+            })) final.push(c);
+        });
 
         final.forEach(item => {
-            if (locked.has(item.cls)) { render(item, "#d4af37", true); return; }
-            if (isScanning && item.conf > 0.40 && locked.size < 11) {
+            if (locked.has(item.cls)) { ctx.strokeStyle = "#d4af37"; ctx.strokeRect(item.x-item.w/2, item.y-item.h/2, item.w, item.h); return; }
+            if (isScanning && locked.size < 11) {
                 let b = buffer.get(item.cls) || { count: 0 };
                 b.count++; buffer.set(item.cls, b);
                 if (b.count > 3) {
-                    locked.set(item.cls, { 
-                        ...item, name: RU[item.cls], file: FILE[item.cls],
-                        px: (item.x / canvas.width) * 100, py: (item.y / canvas.height) * 100
-                    });
-                    updateCounter();
+                    locked.set(item.cls, { ...item, name: RU[item.cls], file: FILE[item.cls] });
+                    document.getElementById('count-num').innerText = locked.size;
                     if (navigator.vibrate) navigator.vibrate(40);
                 }
-                render(item, "#00ffea", false);
-            } else if (!isScanning) {
-                render(item, "rgba(255,255,255,0.1)", false);
             }
+            ctx.strokeStyle = isScanning ? "#00ffea" : "rgba(255,255,255,0.2)";
+            ctx.strokeRect(item.x-item.w/2, item.y-item.h/2, item.w, item.h);
         });
         document.getElementById('view-btn').disabled = (locked.size === 0);
     }
 
-    function updateCounter() {
-        document.getElementById('count-num').innerText = locked.size;
-    }
-
-    function render(item, col, isL) {
-        ctx.strokeStyle = col; ctx.lineWidth = isL ? 2 : 1;
-        ctx.strokeRect(item.x-item.w/2, item.y-item.h/2, item.w, item.h);
-    }
-
     function openTable() {
         isScanning = false;
-        document.getElementById('scan-trigger').innerText = "НАЧАТЬ СКАН";
-        const board = document.getElementById('spread-canvas');
-        board.innerHTML = "";
+        const grid = document.getElementById('grid');
+        grid.innerHTML = "";
         
-        let cards = Array.from(locked.values());
-        
-        // АЛГОРИТМ "АНТИ-КУЧА": Раздвигаем карты, если перекрытие > 5%
-        for (let i = 0; i < cards.length; i++) {
-            for (let j = 0; j < cards.length; j++) {
-                if (i === j) continue;
-                let dx = cards[i].px - cards[j].px;
-                let dy = cards[i].py - cards[j].py;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 12) { // Если центры ближе 12% экрана
-                    cards[i].px += dx * 0.5; cards[i].py += dy * 0.5;
-                }
-            }
-        }
-        
+        // СОРТИРОВКА: СНАЧАЛА ПО ВЫСОТЕ (РЯДЫ), ПОТОМ ПО ГОРИЗОНТАЛИ
+        const cards = Array.from(locked.values()).sort((a, b) => {
+            if (Math.abs(a.y - b.y) < canvas.height * 0.15) return a.x - b.x;
+            return a.y - b.y;
+        });
+
         cards.forEach(c => {
             const div = document.createElement('div');
-            div.className = 'card-absolute';
-            div.style.left = c.px + "%"; div.style.top = c.py + "%";
-            div.innerHTML = `<img src="./cards/${c.file}.jpg" class="card-img"><div class="card-caption">${c.name}</div>`;
-            board.appendChild(div);
+            div.className = 'card-box';
+            div.onclick = () => showZoom(c);
+            div.innerHTML = `<img src="./cards/${c.file}.jpg" class="card-img"><div class="card-name-label">${c.name}</div>`;
+            grid.appendChild(div);
         });
         document.getElementById('table-view').style.display = 'flex';
+    }
+
+    function showZoom(c) {
+        document.getElementById('zoom-img').src = `./cards/${c.file}.jpg`;
+        document.getElementById('zoom-text').innerText = `${c.name}\n(ВНУТРЕННИЙ ПОТОК)`; //
+        document.getElementById('zoom-modal').style.display = 'flex';
     }
 
     function clearScan() {
